@@ -1,4 +1,5 @@
 `include "mips_para.v"
+//算数逻辑单元
 module alu(
     input [31:0] srca_i, srcb_i,//操作数1，2
     input [3:0] aluop_i,//控制alu运算模式

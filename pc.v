@@ -1,3 +1,4 @@
+//取指
 module pc (
     input clk,//时钟
     input rst_n,//复位
