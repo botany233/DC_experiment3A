@@ -8,9 +8,9 @@ module alu(
 );
     always @(srca_i, srcb_i, aluop_i) begin
         case (aluop_i)
-            `alu_shl:begin alu_result=srcb_i<<srca_i[4:0];zero=alu_result==0?1:0;end
-            `alu_shr:begin alu_result=srcb_i>>srca_i[4:0];zero=alu_result==0?1:0;end
-            `alu_sar:begin alu_result=($signed(srcb_i))>>>srca_i[4:0];zero=alu_result==0?1:0;end
+            `alu_shl:begin alu_result=srca_i<<srcb_i[4:0];zero=alu_result==0?1:0;end
+            `alu_shr:begin alu_result=srca_i>>srcb_i[4:0];zero=alu_result==0?1:0;end
+            `alu_sar:begin alu_result=($signed(srca_i))>>>srcb_i[4:0];zero=alu_result==0?1:0;end
             `alu_add:begin alu_result=srca_i+srcb_i; zero=alu_result==0?1:0;end
             `alu_sub:begin alu_result=srca_i-srcb_i; zero=alu_result==0?1:0;end
             `alu_and:begin alu_result=srca_i&srcb_i; zero=alu_result==0?1:0;end

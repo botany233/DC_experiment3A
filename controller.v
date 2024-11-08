@@ -3,12 +3,8 @@
 module controller(
     input [5:0] op_i,
     input [5:0] funct_i,
-    output reg reg_write,
-    output reg mem_write,
     output reg [3:0] alu_op,
-    output reg alu_srcb,
-    output reg reg_dst,
-    output reg jump
+    output reg reg_write, mem_write, alu_srcb, reg_dst, jump, ext_op, alu_srca, jr
 );
     always @(*) begin
         //寄存器写入控制信号
@@ -17,8 +13,8 @@ module controller(
             `ADDI, `ANDI, `ORI, `XORI, `SLTI: reg_write <= 1'b1;
             `R_TYPE: begin
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
-                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU: reg_write <= 1'b1;
+                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
+                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU, `SLL, `SRL, `SRA: reg_write <= 1'b1;
                     default: reg_write <= 1'b0;
                 endcase
             end
@@ -41,13 +37,16 @@ module controller(
                     `XOR: alu_op <= `alu_xor;//异或
                     `SLT: alu_op <= `alu_slt;//小于比较
                     `SLTU: alu_op <= `alu_sltu;//无符号小于比较
+                    `SLL: alu_op <= `alu_shl;//逻辑左移
+                    `SRL: alu_op <= `alu_shr;//逻辑右移
+                    `SRA: alu_op <= `alu_sar;//算数右移
                     default: alu_op <= 4'bx;
                 endcase
             end
             default: alu_op <= 4'bx;
         endcase
 
-        //alu输入控制信号
+        //alu输入2控制信号
         case (op_i)
             `R_TYPE: begin//R型指令
                 case (funct_i)
@@ -63,18 +62,53 @@ module controller(
         case (op_i)
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
-                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU: reg_dst <= 1'b1;
+                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
+                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU, `SLL, `SRL, `SRA: reg_dst <= 1'b1;
                     default: reg_dst <= 1'b0;
                 endcase
             end
             default: reg_dst <= 1'b0;
         endcase
 
-        //pc_next控制信号
+        //pc_next控制信号1
         case (op_i)
             `J: jump <= 1'b1;//跳转
             default: jump <= 1'b0;
+        endcase
+
+        //pc_next控制信号2
+        case (op_i)
+            `R_TYPE: begin//R型指令
+                case (funct_i)
+                    `JR: jr <= 1'b1;//跳转寄存器
+                    default: jr <= 1'b0;
+                endcase
+            end
+            default: jr <= 1'b0;
+        endcase
+
+        //立即数扩展控制信号
+        case (op_i)
+            `R_TYPE: begin//R型指令
+                case (funct_i)
+                    //逻辑左移、逻辑右移、算数右移
+                    `SLL, `SRL, `SRA: ext_op <= 1'b0;
+                    default: ext_op <= 1'b1;
+                endcase
+            end
+            default: ext_op <= 1'b1;
+        endcase
+
+        //alu输入1控制信号
+        case (op_i)
+            `R_TYPE: begin//R型指令
+                case (funct_i)
+                    //逻辑左移、逻辑右移、算数右移
+                    `SLL, `SRL, `SRA: alu_srca <= 1'b1;
+                    default: alu_srca <= 1'b0;
+                endcase
+            end
+            default: alu_srca <= 1'b0;
         endcase
     end
 endmodule
