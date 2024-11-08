@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
 module tb_mips();
     reg clk, rst_n;
-    wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result;
+    wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result, srcb;
     wire [3:0] alu_op;
     wire reg_write, zero;
     wire [31:0] regfile [31:0];
@@ -17,7 +17,8 @@ module tb_mips();
         .alu_result(alu_result),
         .alu_op(alu_op),
         .reg_write(reg_write),
-        .zero(zero)
+        .zero(zero),
+        .srcb(srcb)
     );
 
     genvar i;

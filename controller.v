@@ -12,12 +12,12 @@ module controller(
     always @(*) begin
         //寄存器写入控制信号
         case(op_i)
-            //立即数加法, 立即数按位求与, 立即数按位求或, 立即数按位异或, 立即数小于比较
+            //立即数加法、立即数按位求与、立即数按位求或、立即数按位异或、立即数小于比较
             `ADDI, `ANDI, `ORI, `XORI, `SLTI: reg_write <= 1'b1;
             `R_TYPE: begin
                 case (funct_i)
-                    //加法
-                    `ADD: reg_write <= 1'b1;
+                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
+                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU: reg_write <= 1'b1;
                     default: reg_write <= 1'b0;
                 endcase
             end
@@ -34,6 +34,12 @@ module controller(
             `R_TYPE: begin
                 case (funct_i)
                     `ADD: alu_op <= `alu_add;//加法
+                    `SUB: alu_op <= `alu_sub;//减法
+                    `AND: alu_op <= `alu_and;//求与
+                    `OR: alu_op <= `alu_or;//求或
+                    `XOR: alu_op <= `alu_xor;//异或
+                    `SLT: alu_op <= `alu_slt;//小于比较
+                    `SLTU: alu_op <= `alu_sltu;//无符号小于比较
                     default: alu_op <= 4'bx;
                 endcase
             end
@@ -44,8 +50,8 @@ module controller(
         case (op_i)
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    //加法
-                    `ADD: alu_srcb <= 1'b0;
+                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
+                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU: alu_srcb <= 1'b0;
                     default: alu_srcb <= 1'b1;
                 endcase
             end
@@ -56,7 +62,8 @@ module controller(
         case (op_i)
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    `ADD: reg_dst <= 1'b1;
+                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
+                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU: reg_dst <= 1'b1;
                     default: reg_dst <= 1'b0;
                 endcase
             end
