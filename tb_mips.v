@@ -4,6 +4,7 @@ module tb_mips();
     wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result;
     wire [3:0] alu_op;
     wire reg_write, zero;
+    wire [31:0] regfile [31:0];
 
     mips mips1(
         .clk(clk),
@@ -18,6 +19,13 @@ module tb_mips();
         .reg_write(reg_write),
         .zero(zero)
     );
+
+    genvar i;
+    generate
+        for (i = 0; i < 32; i = i + 1) begin
+            assign regfile[i] = mips1.regfile1.rf[i];
+        end
+    endgenerate
 
     initial begin
         rst_n = 0;

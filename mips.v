@@ -1,8 +1,13 @@
 module mips(
     input clk, rst_n,
-    output wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result,
+    //下一条指令地址、当前指令地址、当前指令、有符号扩展立即数、alu输入1、寄存器输出2、alu输入2
+    output wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result, r2, srcb,
+    //alu控制信号
     output wire [3:0] alu_op,
-    output wire reg_write, zero
+    //寄存器写入地址
+    output wire [4:0] reg_wra,
+    //寄存器写入控制信号、寄存器输出为0、alu输入2控制信号、寄存器写入地址控制信号
+    output wire reg_write, zero, alu_srcb, reg_dst
 );
     //取指令
     pc pc1(.clk(clk), .rst_n(rst_n), .pc_next(pc_next), .pc(pc));
@@ -15,7 +20,9 @@ module mips(
         .funct_i(instr[5:0]),
         .reg_write(reg_write),
         .mem_write(mem_write),
-        .alu_op(alu_op)
+        .alu_op(alu_op),
+        .alu_srcb(alu_srcb),
+        .reg_dst(reg_dst)
     );
 
     //寄存器堆
@@ -23,18 +30,26 @@ module mips(
         .clk(clk),
         .we(reg_write),
         .a1(instr[25:21]),
-        .a3(instr[20:16]),
+        .a2(instr[20:16]),
+        .a3(reg_wra),
         .wd(alu_result),
-        .r1(srca)
+        .r1(srca),
+        .r2(r2)
     );
+
+    //选择0:rt还是1:rd作为寄存器写入地址
+    mux2 #(5) mux2_1(.a(instr[20:16]), .b(instr[15:11]), .s(reg_dst), .y(reg_wra));
 
     //立即数有符号扩展
     sign_extend sign_extend1(.imm(instr[15:0]), .sign_imm(sign_imm));
 
+    //选择0:寄存器输出2还是1:扩展后立即数作为alu输入2
+    mux2 #(32) mux2_2(.a(r2), .b(sign_imm), .s(alu_srcb), .y(srcb));
+
     //alu
     alu alu1(
         .srca_i(srca),
-        .srcb_i(sign_imm),
+        .srcb_i(srcb),
         .aluop_i(alu_op),
         .zero(zero),
         .alu_result(alu_result)

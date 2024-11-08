@@ -5,7 +5,7 @@ module imem(
 );
     reg [31:0] rom [63:0];
 
-    initial $readmemh("C:/Users/18201/Desktop/verilog/DC_experiment3A/test_command/output_command.txt", rom);
+    initial $readmemh("C:/Users/18201/Desktop/verilog/output_command.txt", rom);
 
     always @(addr_i) begin
         instr = rom[addr_i[31:2]];
