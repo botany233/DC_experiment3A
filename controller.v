@@ -4,13 +4,14 @@ module controller(
     input [5:0] op_i,
     input [5:0] funct_i,
     output reg [3:0] alu_op,
-    output reg reg_write, mem_write, alu_srcb, reg_dst, jump, ext_op, alu_srca, jr
+    output reg [1:0] ext_op,
+    output reg reg_write, mem_write, alu_srcb, reg_dst, jump, alu_srca, jr, mem_to_reg, beq, lui, bne
 );
     always @(*) begin
         //寄存器写入控制信号
         case(op_i)
-            //立即数加法、立即数按位求与、立即数按位求或、立即数按位异或、立即数小于比较
-            `ADDI, `ANDI, `ORI, `XORI, `SLTI: reg_write <= 1'b1;
+            //立即数加法、立即数按位求与、立即数按位求或、立即数按位异或、立即数小于比较、读取字、装入立即数高位
+            `ADDI, `ANDI, `ORI, `XORI, `SLTI, `LW, `LUI: reg_write <= 1'b1;
             `R_TYPE: begin
                 case (funct_i)
                     //加法、减法、求与、求或、异或、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
@@ -23,11 +24,12 @@ module controller(
 
         //ALU操作控制信号
         case (op_i)
-            `ADDI: alu_op <= `alu_add;//立即数加法
+            `ADDI, `LW, `SW: alu_op <= `alu_add;//立即数加法、读取字
             `ANDI: alu_op <= `alu_and;//立即数按位求与
             `ORI: alu_op <= `alu_or;//立即数按位求或
             `XORI: alu_op <= `alu_xor;//立即数按位异或
             `SLTI: alu_op <= `alu_slt;//立即数小于比较
+            `BEQ, `BNE: alu_op <= `alu_sub;//如果相等则转移、如果不相等则转移
             `R_TYPE: begin
                 case (funct_i)
                     `ADD: alu_op <= `alu_add;//加法
@@ -48,6 +50,7 @@ module controller(
 
         //alu输入2控制信号
         case (op_i)
+            `BEQ, `BNE: alu_srcb <= 1'b0;
             `R_TYPE: begin//R型指令
                 case (funct_i)
                     //加法、减法、求与、求或、异或、小于比较、无符号小于比较
@@ -89,14 +92,15 @@ module controller(
 
         //立即数扩展控制信号
         case (op_i)
+            `LUI: ext_op <= 2'b11;//装入立即数高位
             `R_TYPE: begin//R型指令
                 case (funct_i)
                     //逻辑左移、逻辑右移、算数右移
-                    `SLL, `SRL, `SRA: ext_op <= 1'b0;
-                    default: ext_op <= 1'b1;
+                    `SLL, `SRL, `SRA: ext_op <= 2'b10;
+                    default: ext_op <= 2'b00;
                 endcase
             end
-            default: ext_op <= 1'b1;
+            default: ext_op <= 2'b00;
         endcase
 
         //alu输入1控制信号
@@ -109,6 +113,36 @@ module controller(
                 endcase
             end
             default: alu_srca <= 1'b0;
+        endcase
+
+        //alu输出&存储器输出控制信号
+        case (op_i)
+            `LW: mem_to_reg <= 1'b1;
+            default: mem_to_reg <= 1'b0;
+        endcase
+
+        //存储器写入控制信号
+        case (op_i)
+            `SW: mem_write <= 1'b1;
+            default: mem_write <= 1'b0;
+        endcase
+
+        //相等转移控制信号
+        case (op_i)
+            `BEQ: beq <= 1'b1;
+            default: beq <= 1'b0;
+        endcase
+
+        //不相等转移控制信号
+        case (op_i)
+            `BNE: bne <= 1'b1;
+            default: bne <= 1'b0;
+        endcase
+
+        //(alu输出&存储器输出)&装入立即数高位控制信号，简称：lui控制信号
+        case (op_i)
+            `LUI: lui <= 1'b1;
+            default: lui <= 1'b0;
         endcase
     end
 endmodule
