@@ -1,18 +1,24 @@
 module mips(
     input clk, rst_n,
-    //下一条指令地址、当前指令地址、当前指令、有符号扩展立即数、alu输入1、寄存器输出2、alu输入2
-    output wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result, r2, srcb,
+    //下一条指令地址、当前指令地址、当前指令、有符号扩展立即数、alu输入1、寄存器输出2、alu输入2、指令跳转地址、指令地址+4
+    output wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result, r2, srcb, pc_jump, pc_plus_4,
     //alu控制信号
     output wire [3:0] alu_op,
     //寄存器写入地址
     output wire [4:0] reg_wra,
-    //寄存器写入控制信号、寄存器输出为0、alu输入2控制信号、寄存器写入地址控制信号
-    output wire reg_write, zero, alu_srcb, reg_dst
+    //寄存器写入控制信号、寄存器输出为0、alu输入2控制信号、寄存器写入地址控制信号、下一条指令地址控制信号
+    output wire reg_write, zero, alu_srcb, reg_dst, jump
 );
     //取指令
     pc pc1(.clk(clk), .rst_n(rst_n), .pc_next(pc_next), .pc(pc));
-    assign pc_next = pc + 4;
+    assign pc_plus_4 = pc + 4;
     imem imem1(.addr_i(pc), .instr(instr));
+
+    //指令跳转地址
+    assign pc_jump = {pc_plus_4[31:28], instr[25:0], 2'b0};
+
+    //选择0:指令地址+4还是1:指令跳转地址作为下一条指令地址
+    mux2 #(32) mux2_3(.a(pc_plus_4), .b(pc_jump), .s(jump), .y(pc_next));
 
     //指令译码
     controller controller1(
@@ -22,7 +28,8 @@ module mips(
         .mem_write(mem_write),
         .alu_op(alu_op),
         .alu_srcb(alu_srcb),
-        .reg_dst(reg_dst)
+        .reg_dst(reg_dst),
+        .jump(jump)
     );
 
     //寄存器堆

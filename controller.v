@@ -7,7 +7,8 @@ module controller(
     output reg mem_write,
     output reg [3:0] alu_op,
     output reg alu_srcb,
-    output reg reg_dst
+    output reg reg_dst,
+    output reg jump
 );
     always @(*) begin
         //寄存器写入控制信号
@@ -68,6 +69,12 @@ module controller(
                 endcase
             end
             default: reg_dst <= 1'b0;
+        endcase
+
+        //pc_next控制信号
+        case (op_i)
+            `J: jump <= 1'b1;//跳转
+            default: jump <= 1'b0;
         endcase
     end
 endmodule
