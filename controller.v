@@ -13,12 +13,12 @@ module controller(
     always @(*) begin
         //寄存器写入控制信号
         case(op_i)
-            //立即数加法、立即数按位求与、立即数按位求或、立即数按位异或、立即数小于比较、读取字、装入立即数高位、跳转并链接
+            //立即数加法、立即数按位求与、立即数按位求或、立即数按位异或、立即数小于比较、装入字、装入立即数高位、跳转并链接
             `ADDI, `ANDI, `ORI, `XORI, `SLTI, `LW, `LUI, `JAL: reg_write <= 1'b1;
             `R_TYPE: begin
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、或非、小于比较、无符号小于比较
-                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU,
+                    //加法、减法、求与、求或、异或、或非、小于比较、无符号小于比较、跳转并链接寄存器
+                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `JALR,
                     //逻辑左移、逻辑右移、算数右移、带变量的逻辑左移、带变量的逻辑右移、带变量的算数右移
                     `SLL, `SRL, `SRA, `SLLV, `SRLV, `SRAV: reg_write <= 1'b1;
                     default: reg_write <= 1'b0;
@@ -29,7 +29,7 @@ module controller(
 
         //ALU操作控制信号
         case (op_i)
-            `ADDI, `LW, `SW: alu_op <= `alu_add;//立即数加法、读取字
+            `ADDI, `LW, `SW: alu_op <= `alu_add;//立即数加法、装入字、存储字
             `ANDI: alu_op <= `alu_and;//立即数按位求与
             `ORI: alu_op <= `alu_or;//立即数按位求或
             `XORI: alu_op <= `alu_xor;//立即数按位异或
@@ -98,13 +98,18 @@ module controller(
         //寄存器写入地址控制信号2
         case (op_i)
             `JAL: ra_dst <= 1'b1;//跳转并链接
+            `R_TYPE: begin//R型指令
+                case (funct_i)
+                    `JALR: ra_dst <= 1'b1;//跳转并链接寄存器
+                    default: ra_dst <= 1'b0;
+                endcase
+            end
             default: ra_dst <= 1'b0;
         endcase
 
         //pc_next控制信号1
         case (op_i)
-            `J: jump <= 1'b1;//跳转
-            `JAL: jump <= 1'b1;//跳转并链接
+            `J, `JAL: jump <= 1'b1;//跳转、跳转并链接
             default: jump <= 1'b0;
         endcase
 
@@ -112,7 +117,7 @@ module controller(
         case (op_i)
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    `JR: jr <= 1'b1;//跳转寄存器
+                    `JR, `JALR: jr <= 1'b1;//跳转寄存器、跳转并链接寄存器
                     default: jr <= 1'b0;
                 endcase
             end
@@ -130,12 +135,6 @@ module controller(
                 endcase
             end
             default: ext_op <= 2'b00;
-        endcase
-
-        //存储器写入控制信号
-        case (op_i)
-            `SW: mem_write <= 1'b1;
-            default: mem_write <= 1'b0;
         endcase
 
         //相等转移控制信号
@@ -162,21 +161,33 @@ module controller(
             default: bgtz <= 1'b0;
         endcase
 
+        //存储器写入控制信号
+        case (op_i)
+            `SW: mem_write <= 1'b1;//存储字
+            default: mem_write <= 1'b0;
+        endcase
+
         //寄存器写入内容控制信号1
         case (op_i)
-            `LW: mem_to_reg <= 1'b1;
+            `LW: mem_to_reg <= 1'b1;//装入字
             default: mem_to_reg <= 1'b0;
         endcase
 
         //寄存器写入内容控制信号2
         case (op_i)
-            `LUI: lui <= 1'b1;
+            `LUI: lui <= 1'b1;//装入立即数高位
             default: lui <= 1'b0;
         endcase
 
         //寄存器写入内容控制信号3
         case (op_i)
-            `JAL: pc_to_reg <= 1'b1;
+            `JAL: pc_to_reg <= 1'b1;//跳转并链接
+            `R_TYPE: begin//R型指令
+                case (funct_i)
+                    `JALR: pc_to_reg <= 1'b1;//跳转并链接寄存器
+                    default: pc_to_reg <= 1'b0;
+                endcase
+            end
             default: pc_to_reg <= 1'b0;
         endcase
     end
