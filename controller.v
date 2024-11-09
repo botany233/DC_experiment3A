@@ -17,8 +17,10 @@ module controller(
             `ADDI, `ANDI, `ORI, `XORI, `SLTI, `LW, `LUI, `JAL: reg_write <= 1'b1;
             `R_TYPE: begin
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、或非、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
-                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `SLL, `SRL, `SRA: reg_write <= 1'b1;
+                    //加法、减法、求与、求或、异或、或非、小于比较、无符号小于比较
+                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU,
+                    //逻辑左移、逻辑右移、算数右移、带变量的逻辑左移、带变量的逻辑右移、带变量的算数右移
+                    `SLL, `SRL, `SRA, `SLLV, `SRLV, `SRAV: reg_write <= 1'b1;
                     default: reg_write <= 1'b0;
                 endcase
             end
@@ -43,9 +45,9 @@ module controller(
                     `NOR: alu_op <= `alu_nor;//或非
                     `SLT: alu_op <= `alu_slt;//小于比较
                     `SLTU: alu_op <= `alu_sltu;//无符号小于比较
-                    `SLL: alu_op <= `alu_shl;//逻辑左移
-                    `SRL: alu_op <= `alu_shr;//逻辑右移
-                    `SRA: alu_op <= `alu_sar;//算数右移
+                    `SLL, `SLLV: alu_op <= `alu_shl;//逻辑左移
+                    `SRL, `SRLV: alu_op <= `alu_shr;//逻辑右移
+                    `SRA, `SRAV: alu_op <= `alu_sar;//算数右移
                     default: alu_op <= 4'bx;
                 endcase
             end
@@ -69,8 +71,10 @@ module controller(
             `BEQ, `BNE: alu_srcb <= 1'b0;
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
-                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `SLL, `SRL, `SRA: alu_srcb <= 1'b0;
+                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
+                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU,
+                    //逻辑左移、逻辑右移、算数右移、带变量的逻辑左移、带变量的逻辑右移、带变量的算数右移
+                    `SLL, `SRL, `SRA, `SLLV, `SRLV, `SRAV: alu_srcb <= 1'b0;
                     default: alu_srcb <= 1'b1;
                 endcase
             end
@@ -81,8 +85,10 @@ module controller(
         case (op_i)
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
-                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `SLL, `SRL, `SRA: reg_dst <= 1'b1;
+                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
+                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU,
+                    //逻辑左移、逻辑右移、算数右移、带变量的逻辑左移、带变量的逻辑右移、带变量的算数右移
+                    `SLL, `SRL, `SRA, `SLLV, `SRLV, `SRAV: reg_dst <= 1'b1;
                     default: reg_dst <= 1'b0;
                 endcase
             end
