@@ -1,9 +1,8 @@
 `timescale 1ns/1ns
 module tb_mips();
     reg clk, rst_n;
-    wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result, srcb, pc_plus_4, pc_jump, r1, r2, result;
-    wire [3:0] alu_op;
-    wire reg_write, zero, jump, jr;
+    wire [31:0] pc_next, pc, instr, sign_imm, srca, alu_result, srcb, r1, r2, reg_wrd, pc_branch, pc_sel_1, pc_sel_2;
+    wire zero, branch, test1, test2, test3, test4, test5, test6;
     wire [31:0] regfile [31:0];
     wire [31:0] dmem [31:0];
 
@@ -15,18 +14,22 @@ module tb_mips();
         .instr(instr),
         .sign_imm(sign_imm),
         .srca(srca),
-        .alu_result(alu_result),
-        .alu_op(alu_op),
-        .reg_write(reg_write),
-        .zero(zero),
         .srcb(srcb),
-        .jump(jump),
-        .pc_plus_4(pc_plus_4),
-        .pc_jump(pc_jump),
+        .alu_result(alu_result),
+        .zero(zero),
         .r1(r1),
-        .jr(jr),
         .r2(r2),
-        .result(result)
+        .reg_wrd(reg_wrd),
+        .branch(branch),
+        .pc_branch(pc_branch),
+        .pc_sel_1(pc_sel_1),
+        .pc_sel_2(pc_sel_2),
+        .test1(test1),
+        .test2(test2),
+        .test3(test3),
+        .test4(test4),
+        .test5(test5),
+        .test6(test6)
     );
 
     genvar i;

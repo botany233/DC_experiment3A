@@ -5,17 +5,20 @@ module controller(
     input [5:0] funct_i,
     output reg [3:0] alu_op,
     output reg [1:0] ext_op,
-    output reg reg_write, mem_write, alu_srcb, reg_dst, jump, alu_srca, jr, mem_to_reg, beq, lui, bne
+    output reg reg_write, mem_write, jump, jr, mem_to_reg, lui, pc_to_reg,
+    output reg reg_dst, ra_dst,
+    output reg alu_srca, alu_srcb,
+    output reg beq, bne, blez, bgtz
 );
     always @(*) begin
         //寄存器写入控制信号
         case(op_i)
-            //立即数加法、立即数按位求与、立即数按位求或、立即数按位异或、立即数小于比较、读取字、装入立即数高位
-            `ADDI, `ANDI, `ORI, `XORI, `SLTI, `LW, `LUI: reg_write <= 1'b1;
+            //立即数加法、立即数按位求与、立即数按位求或、立即数按位异或、立即数小于比较、读取字、装入立即数高位、跳转并链接
+            `ADDI, `ANDI, `ORI, `XORI, `SLTI, `LW, `LUI, `JAL: reg_write <= 1'b1;
             `R_TYPE: begin
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
-                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU, `SLL, `SRL, `SRA: reg_write <= 1'b1;
+                    //加法、减法、求与、求或、异或、或非、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
+                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `SLL, `SRL, `SRA: reg_write <= 1'b1;
                     default: reg_write <= 1'b0;
                 endcase
             end
@@ -37,6 +40,7 @@ module controller(
                     `AND: alu_op <= `alu_and;//求与
                     `OR: alu_op <= `alu_or;//求或
                     `XOR: alu_op <= `alu_xor;//异或
+                    `NOR: alu_op <= `alu_nor;//或非
                     `SLT: alu_op <= `alu_slt;//小于比较
                     `SLTU: alu_op <= `alu_sltu;//无符号小于比较
                     `SLL: alu_op <= `alu_shl;//逻辑左移
@@ -54,28 +58,35 @@ module controller(
             `R_TYPE: begin//R型指令
                 case (funct_i)
                     //加法、减法、求与、求或、异或、小于比较、无符号小于比较
-                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU: alu_srcb <= 1'b0;
+                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU: alu_srcb <= 1'b0;
                     default: alu_srcb <= 1'b1;
                 endcase
             end
             default: alu_srcb <= 1'b1;
         endcase
 
-        //寄存器写入地址控制信号
+        //寄存器写入地址控制信号1
         case (op_i)
             `R_TYPE: begin//R型指令
                 case (funct_i)
                     //加法、减法、求与、求或、异或、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
-                    `ADD, `SUB, `AND, `OR, `XOR, `SLT, `SLTU, `SLL, `SRL, `SRA: reg_dst <= 1'b1;
+                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `SLL, `SRL, `SRA: reg_dst <= 1'b1;
                     default: reg_dst <= 1'b0;
                 endcase
             end
             default: reg_dst <= 1'b0;
         endcase
 
+        //寄存器写入地址控制信号2
+        case (op_i)
+            `JAL: ra_dst <= 1'b1;//跳转并链接
+            default: ra_dst <= 1'b0;
+        endcase
+
         //pc_next控制信号1
         case (op_i)
             `J: jump <= 1'b1;//跳转
+            `JAL: jump <= 1'b1;//跳转并链接
             default: jump <= 1'b0;
         endcase
 
@@ -115,12 +126,6 @@ module controller(
             default: alu_srca <= 1'b0;
         endcase
 
-        //alu输出&存储器输出控制信号
-        case (op_i)
-            `LW: mem_to_reg <= 1'b1;
-            default: mem_to_reg <= 1'b0;
-        endcase
-
         //存储器写入控制信号
         case (op_i)
             `SW: mem_write <= 1'b1;
@@ -139,10 +144,34 @@ module controller(
             default: bne <= 1'b0;
         endcase
 
-        //(alu输出&存储器输出)&装入立即数高位控制信号，简称：lui控制信号
+        //小于等于0转移控制信号
+        case (op_i)
+            `BLEZ: blez <= 1'b1;
+            default: blez <= 1'b0;
+        endcase
+
+        //大于0转移控制信号
+        case (op_i)
+            `BGTZ: bgtz <= 1'b1;
+            default: bgtz <= 1'b0;
+        endcase
+
+        //寄存器写入内容控制信号1
+        case (op_i)
+            `LW: mem_to_reg <= 1'b1;
+            default: mem_to_reg <= 1'b0;
+        endcase
+
+        //寄存器写入内容控制信号2
         case (op_i)
             `LUI: lui <= 1'b1;
             default: lui <= 1'b0;
+        endcase
+
+        //寄存器写入内容控制信号3
+        case (op_i)
+            `JAL: pc_to_reg <= 1'b1;
+            default: pc_to_reg <= 1'b0;
         endcase
     end
 endmodule

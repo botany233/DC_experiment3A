@@ -2,6 +2,8 @@
 `define JAL 6'h3
 `define BEQ 6'h4
 `define BNE 6'h5
+`define BLEZ 6'h6
+`define BGTZ 6'h7
 `define ADDI 6'h8
 `define ADDIU 6'h9
 `define SLTI 6'hA
