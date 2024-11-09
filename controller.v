@@ -52,13 +52,25 @@ module controller(
             default: alu_op <= 4'bx;
         endcase
 
+        //alu输入1控制信号
+        case (op_i)
+            `R_TYPE: begin//R型指令
+                case (funct_i)
+                    //逻辑左移、逻辑右移、算数右移
+                    `SLL, `SRL, `SRA: alu_srca <= 1'b1;
+                    default: alu_srca <= 1'b0;
+                endcase
+            end
+            default: alu_srca <= 1'b0;
+        endcase
+
         //alu输入2控制信号
         case (op_i)
             `BEQ, `BNE: alu_srcb <= 1'b0;
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
-                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU: alu_srcb <= 1'b0;
+                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较、逻辑左移、逻辑右移、算数右移
+                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `SLL, `SRL, `SRA: alu_srcb <= 1'b0;
                     default: alu_srcb <= 1'b1;
                 endcase
             end
@@ -112,18 +124,6 @@ module controller(
                 endcase
             end
             default: ext_op <= 2'b00;
-        endcase
-
-        //alu输入1控制信号
-        case (op_i)
-            `R_TYPE: begin//R型指令
-                case (funct_i)
-                    //逻辑左移、逻辑右移、算数右移
-                    `SLL, `SRL, `SRA: alu_srca <= 1'b1;
-                    default: alu_srca <= 1'b0;
-                endcase
-            end
-            default: alu_srca <= 1'b0;
         endcase
 
         //存储器写入控制信号

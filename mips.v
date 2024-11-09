@@ -21,8 +21,7 @@ module mips(
     //相等转移信号、相等转移控制信号、相等转移控制信号、小于等于0转移控制信号、大于0转移控制信号
     output wire branch, beq, bne, blez, bgtz,
     //寄存器写入内容控制信号1、寄存器写入内容控制信号2、寄存器写入内容控制信号3
-    output wire mem_to_reg, lui, pc_to_reg,
-    output wire test1, test2, test3, test4, test5, test6
+    output wire mem_to_reg, lui, pc_to_reg
 );
     //取指令
     pc pc1(.clk(clk), .rst_n(rst_n), .pc_next(pc_next), .pc(pc));
@@ -35,12 +34,6 @@ module mips(
     //相等转移信号
     assign branch = ((beq & zero) | (bne & ~zero) | (blez & $signed(r1) <= 0) | (bgtz & $signed(r1) > 0)) == 1'b1;
     assign pc_branch = pc_plus_4 + {sign_imm[29:0], 2'b0};
-    assign test1 = beq & zero;
-    assign test2 = bne & ~zero;
-    assign test3 = blez & r1 <= 0;
-    assign test4 = bgtz & r1 > 0;
-    assign test5 = blez;
-    assign test6 = r1 <= 0;
 
     //指令跳转地址
     assign pc_jump = {pc_plus_4[31:28], instr[25:0], 2'b0};
@@ -99,7 +92,7 @@ module mips(
     );
 
     //选择0:寄存器输出1还是1:寄存器输出2作为alu输入1
-    mux2 #(32) mux2_4(.a(r1), .b(r2), .s(alu_srca), .y(srca));
+    mux2 #(32) mux2_4(.a(r1), .b(sign_imm), .s(alu_srca), .y(srca));
 
     //选择0:rt还是1:rd作为寄存器写入地址中间量
     mux2 #(5) mux2_1(.a(instr[20:16]), .b(instr[15:11]), .s(reg_dst), .y(rt_rd));
