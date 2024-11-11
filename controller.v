@@ -13,12 +13,12 @@ module controller(
     always @(*) begin
         //寄存器写入控制信号
         case(op_i)
-            //立即数加法、立即数按位求与、立即数按位求或、立即数按位异或、立即数小于比较、装入字、装入立即数高位、跳转并链接
-            `ADDI, `ANDI, `ORI, `XORI, `SLTI, `LW, `LUI, `JAL: reg_write <= 1'b1;
+            //立即数加法、无符号立即数加法、立即数与、立即数或、立即数异或、设置小于立即数、设置小于无符号立即数、装入字、装入立即数高位、跳转并链接
+            `ADDI, `ADDIU, `ANDI, `ORI, `XORI, `SLTI, `SLTIU, `LW, `LUI, `JAL: reg_write <= 1'b1;
             `R_TYPE: begin
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、或非、小于比较、无符号小于比较、跳转并链接寄存器
-                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `JALR,
+                    //加法、无符号加法、减法、无符号减法、求与、求或、异或、或非、小于比较、无符号小于比较、跳转并链接寄存器
+                    `ADD, `ADDU, `SUB, `SUBU, `AND, `OR, `XOR, `NOR, `SLT, `SLTU, `JALR,
                     //逻辑左移、逻辑右移、算数右移、带变量的逻辑左移、带变量的逻辑右移、带变量的算数右移
                     `SLL, `SRL, `SRA, `SLLV, `SRLV, `SRAV: reg_write <= 1'b1;
                     default: reg_write <= 1'b0;
@@ -29,16 +29,17 @@ module controller(
 
         //ALU操作控制信号
         case (op_i)
-            `ADDI, `LW, `SW: alu_op <= `alu_add;//立即数加法、装入字、存储字
-            `ANDI: alu_op <= `alu_and;//立即数按位求与
-            `ORI: alu_op <= `alu_or;//立即数按位求或
-            `XORI: alu_op <= `alu_xor;//立即数按位异或
-            `SLTI: alu_op <= `alu_slt;//立即数小于比较
+            `ADDI, `ADDIU, `LW, `SW: alu_op <= `alu_add;//立即数加法、无符号立即数加法、装入字、存储字
+            `ANDI: alu_op <= `alu_and;//立即数与
+            `ORI: alu_op <= `alu_or;//立即数或
+            `XORI: alu_op <= `alu_xor;//立即数异或
+            `SLTI: alu_op <= `alu_slt;//设置小于立即数
+            `SLTIU: alu_op <= `alu_sltu;//设置小于无符号立即数
             `BEQ, `BNE: alu_op <= `alu_sub;//如果相等则转移、如果不相等则转移
             `R_TYPE: begin
                 case (funct_i)
-                    `ADD: alu_op <= `alu_add;//加法
-                    `SUB: alu_op <= `alu_sub;//减法
+                    `ADD, `ADDU: alu_op <= `alu_add;//加法、无符号加法
+                    `SUB, `SUBU: alu_op <= `alu_sub;//减法、无符号减法
                     `AND: alu_op <= `alu_and;//求与
                     `OR: alu_op <= `alu_or;//求或
                     `XOR: alu_op <= `alu_xor;//异或
@@ -71,8 +72,8 @@ module controller(
             `BEQ, `BNE: alu_srcb <= 1'b0;
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
-                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU,
+                    //加法、无符号加法、减法、无符号减法、求与、求或、异或、小于比较、无符号小于比较
+                    `ADD, `ADDU, `SUB, `SUBU, `AND, `OR, `XOR, `NOR, `SLT, `SLTU,
                     //逻辑左移、逻辑右移、算数右移、带变量的逻辑左移、带变量的逻辑右移、带变量的算数右移
                     `SLL, `SRL, `SRA, `SLLV, `SRLV, `SRAV: alu_srcb <= 1'b0;
                     default: alu_srcb <= 1'b1;
@@ -85,8 +86,8 @@ module controller(
         case (op_i)
             `R_TYPE: begin//R型指令
                 case (funct_i)
-                    //加法、减法、求与、求或、异或、小于比较、无符号小于比较
-                    `ADD, `SUB, `AND, `OR, `XOR, `NOR, `SLT, `SLTU,
+                    //加法、无符号加法、减法、无符号减法、求与、求或、异或、小于比较、无符号小于比较
+                    `ADD, `ADDU, `SUB, `SUBU, `AND, `OR, `XOR, `NOR, `SLT, `SLTU,
                     //逻辑左移、逻辑右移、算数右移、带变量的逻辑左移、带变量的逻辑右移、带变量的算数右移
                     `SLL, `SRL, `SRA, `SLLV, `SRLV, `SRAV: reg_dst <= 1'b1;
                     default: reg_dst <= 1'b0;
