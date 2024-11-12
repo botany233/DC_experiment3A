@@ -128,6 +128,7 @@ module controller(
         //立即数扩展控制信号
         case (op_i)
             `LUI: ext_op <= 2'b11;//装入立即数高位
+            `ANDI, `ORI, `XORI: ext_op <= 2'b01;//立即数与、立即数或、立即数异或
             `R_TYPE: begin//R型指令
                 case (funct_i)
                     //逻辑左移、逻辑右移、算数右移

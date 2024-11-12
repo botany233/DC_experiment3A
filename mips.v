@@ -18,7 +18,7 @@ module mips(
     output wire reg_write, mem_write, zero, reg_dst, ra_dst,
     //下一条指令地址控制信号1、下一条指令地址控制信号2、alu输入1控制信号、alu输入2控制信号
     output wire jump, jr, alu_srca, alu_srcb, 
-    //相等转移信号、相等转移控制信号、相等转移控制信号、小于等于0转移控制信号、大于0转移控制信号
+    //相等转移信号、相等转移控制信号、不相等转移控制信号、小于等于0转移控制信号、大于0转移控制信号
     output wire branch, beq, bne, blez, bgtz,
     //寄存器写入内容控制信号1、寄存器写入内容控制信号2、寄存器写入内容控制信号3
     output wire mem_to_reg, lui, pc_to_reg
