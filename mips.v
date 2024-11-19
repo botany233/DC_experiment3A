@@ -1,7 +1,7 @@
 module mips(
     input clk, rst_n,
-    //alu运算结果、寄存器写入内容中间量1、寄存器写入内容中间量2、寄存器写入内容
-    output wire [31:0] alu_result, result, result_extimm, reg_wrd,
+    //alu运算结果、寄存器写入内容中间量1、寄存器写入内容中间量2、寄存器写入内容、运算结果
+    output wire [31:0] alu_result, result, result_extimm, reg_wrd, s7,
     //当前指令、扩展立即数
     output wire [31:0] instr, sign_imm,
     //寄存器输出1、寄存器输出2、alu输入1、alu输入2、存储器输出、指令地址转移分支
@@ -28,7 +28,7 @@ module mips(
     assign pc_plus_4 = pc + 4;
 
     //指令寄存器、存储器
-    imem imem1(.addr_i(pc), .instr(instr));
+    imem imem1(.clk(clk), .addr_i(pc), .instr(instr));
     dmem dmem1(.clk(clk), .we(mem_write), .write_data(r2), .read_data(read_data), .addr(alu_result));
 
     //相等转移信号
@@ -70,7 +70,8 @@ module mips(
         .a3(reg_wra),
         .wd(reg_wrd),
         .r1(r1),
-        .r2(r2)
+        .r2(r2),
+        .s7(s7)
     );
 
     //立即数有符号扩展

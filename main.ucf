@@ -1,0 +1,23 @@
+
+# PlanAhead Generated physical constraints 
+
+NET "com[1]" LOC = P27;
+NET "com[0]" LOC = P26;
+NET "key[1]" LOC = P3;
+NET "key[0]" LOC = P2;
+NET "leds[3]" LOC = P85;
+NET "leds[2]" LOC = P84;
+NET "leds[1]" LOC = P83;
+NET "leds[0]" LOC = P79;
+NET "segs[7]" LOC = P23;
+NET "segs[6]" LOC = P18;
+NET "segs[5]" LOC = P15;
+NET "segs[4]" LOC = P16;
+NET "segs[3]" LOC = P17;
+NET "segs[2]" LOC = P22;
+NET "segs[1]" LOC = P24;
+NET "segs[0]" LOC = P12;
+NET "sw[1]" LOC = P33;
+NET "sw[0]" LOC = P32;
+NET "clk" LOC = P36;
+NET "rst_n" LOC = P11;
