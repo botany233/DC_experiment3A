@@ -33,15 +33,16 @@ control	control_inst
 
 segment
 #(
-	.CNT_1ms	(	50_0000)
+   .CNT_1ms(50_000)
 )
 segment_inst
 (
-	.clk		(clk		)	,
-	.rst_n		(rst_n		),
-	.display	(display	),
-	.com		(com		),
-	.segs		(segs		)
+   .clk(clk),
+   .rst_n(rst_n),
+   .display(display),
+   .com(com),
+   .sw(sw),
+   .segs(segs)
 );
 
 endmodule	
@@ -133,78 +134,83 @@ endmodule
 
 
 
-module	segment
+module segment
 #(
-	parameter	CNT_1ms	=	50_000
+    parameter    CNT_1ms = 50_000
 )
 (
-	input		wire			clk			,
-	input		wire			rst_n		,
-	input		wire	[7:0]	display	,
-	output	reg	[1:0]	com		,
-	output	reg	[7:0]	segs		
+    input        wire        clk,
+    input        wire        rst_n,
+    input        wire[7:0]    display,
+    input        wire[1:0]    sw,
+    output    reg[1:0]    com,
+    output    reg[7:0]    segs
 );
-reg [ 7:0 ] COM_cnt = 'b0 ;
-reg	[31:0]	cnt;
-reg			sel;
-reg	[3:0]	data;
+
+reg[31:0]    cnt;
+reg        sel;
+reg[3:0]    data;
+reg [ 4:0 ] COM_cnt = 'b0 ;
+always@(posedge clk or negedge rst_n)
+    if(!rst_n)
+        cnt <= 0;
+    else if(cnt < CNT_1ms - 1)
+        cnt <= cnt + 1;
+    else
+        cnt <= 0;
 
 always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-		cnt<=0;
-	else if(cnt<CNT_1ms-1)
-		cnt<=cnt+1;
-	else
-		cnt<=0;
-		
-always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-		sel<=1'd0;
-	else if(cnt==CNT_1ms-1)
-		sel<=sel+1'd1;	
-	else
-		sel<=sel;
+    if(!rst_n)
+        sel <= 1'd0;
+    else if(cnt == CNT_1ms - 1)
+        sel <= sel + 1'd1;
+    else
+        sel <= sel;
 always@(posedge clk )
-    COM_cnt <= COM_cnt + 1;		
+    COM_cnt <= COM_cnt + 1;
+always@(posedge clk or negedge rst_n)    
+    if(!rst_n)
+        com <= 6'b111111;
+    else
+        case({sel,COM_cnt})
+            6'b000000    :    com <= 2'b10;
+            6'b110000    :    com <= 2'b01;
+            default      :    com <= 2'b00;
+        endcase
+
 always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-		com<=8'b1111_1111;
-	else
-		case({sel,COM_cnt})
-            9'b000000000    :    com <= 2'b10;
-            9'b110000000    :    com <= 2'b01;
-		endcase
-		
-always@(posedge clk or negedge rst_n)
-	if(!rst_n)
-		data<=4'h0;
-	else
-		case(sel)
-			1'b0	:	data<=display[3:0];
-			1'b1	:	data<=display[7:4];
-		endcase
+    if(!rst_n)
+        data <= 4'h0;
+    else
+        case(sel)
+            1'b0    :    data <= display[3:0];
+            1'b1    :    data <= display[7:4];
+        endcase
 
 always@(*)
-	begin
-		case(data)
-			4'b0000	:	segs[7:1] = 7'b1111110;			//0
-			4'b0001	:	segs[7:1] = 7'b0110000;			//1
-			4'b0010	:	segs[7:1] = 7'b1101101;			//2
-			4'b0011	:	segs[7:1] = 7'b1111001;			//3
-			4'b0100	:	segs[7:1] = 7'b0110011;			//4
-			4'b0101	:	segs[7:1] = 7'b1011011;			//5
-			4'b0110	:	segs[7:1] = 7'b1011111;			//6
-			4'b0111	:	segs[7:1] = 7'b1110000;			//7
-			4'b1000	:	segs[7:1] = 7'b1111111;			//8
-			4'b1001	:	segs[7:1] = 7'b1111011;			//9
-			4'b1010	:	segs[7:1] = 7'b1110111;			//r
-			4'b1011	:	segs[7:1] = 7'b0011111;			//b
-			4'b1100	:	segs[7:1] = 7'b1001110;			//C
-			4'b1101	:	segs[7:1] = 7'b0111101;			//d
-			4'b1110	:	segs[7:1] = 7'b1001111;			//E
-			4'b1111	:	segs[7:1] = 7'b1000111;			//F
-		endcase
-	end
-	
-endmodule	
+    begin
+        if(sw == 2'b10 || sw == 2'b01) begin
+        case(data)
+            4'b0000    :    segs[7:1] = 7'b1111110;        //0
+            4'b0001    :    segs[7:1] = 7'b0110000;        //1
+            4'b0010    :    segs[7:1] = 7'b1101101;        //2
+            4'b0011    :    segs[7:1] = 7'b1111001;        //3
+            4'b0100    :    segs[7:1] = 7'b0110011;        //4
+            4'b0101    :    segs[7:1] = 7'b1011011;        //5
+            4'b0110    :    segs[7:1] = 7'b1011111;        //6
+            4'b0111    :    segs[7:1] = 7'b1110000;        //7
+            4'b1000    :    segs[7:1] = 7'b1111111;        //8
+            4'b1001    :    segs[7:1] = 7'b1111011;        //9
+            4'b1010    :    segs[7:1] = 7'b1110111;        //r
+            4'b1011    :    segs[7:1] = 7'b0011111;        //b
+            4'b1100    :    segs[7:1] = 7'b1001110;        //C
+            4'b1101    :    segs[7:1] = 7'b0111101;        //d
+            4'b1110    :    segs[7:1] = 7'b1001111;        //E
+            4'b1111    :    segs[7:1] = 7'b1000111;        //F
+        endcase
+        end else begin
+            segs[7:1] = 7'b0000000; 
+        end
+    end
 
+endmodule
