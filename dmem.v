@@ -7,7 +7,7 @@ module dmem(
 );
     reg [31:0] ram [63:0];
 
-    assign read_data = ram[addr[31:2]];
+    assign read_data = ram[addr[7:2]];
 
     always @(posedge clk) begin
         if (we) ram[addr[7:2]] <= write_data;
